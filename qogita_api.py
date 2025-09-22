@@ -30,7 +30,12 @@ def _get_qogita_api_key() -> str:
 
 
 def get_qogita_products(limit=50):
-    headers = {"Authorization": f"Bearer {_get_qogita_api_key()}"}
+    try:
+        api_key = _get_qogita_api_key()
+    except RuntimeError:
+        return []
+
+    headers = {"Authorization": f"Bearer {api_key}"}
     url = "https://api.qogita.com/v1/products"
     r = requests.get(url, headers=headers)
     data = r.json()
