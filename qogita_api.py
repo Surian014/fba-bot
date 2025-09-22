@@ -8,7 +8,11 @@ def _get_qogita_api_key() -> str:
     """Fetch the Qogita API key from Streamlit secrets or the environment."""
 
     try:
-        api_key = st.secrets.get("QOGITA_API_KEY")
+        api_key = st.secrets["QOGITA_API_KEY"]
+        if not api_key:
+            raise KeyError("QOGITA_API_KEY is empty")
+    except KeyError:
+        api_key = None
     except Exception:
         api_key = None
 
