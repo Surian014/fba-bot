@@ -10,8 +10,16 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import qogita_api
 
 
+class FakeSecrets:
+    def __init__(self, data):
+        self._data = data
+
+    def __getitem__(self, key):
+        return self._data[key]
+
+
 def test_get_qogita_products_returns_data(monkeypatch):
-    secrets = {"QOGITA_API_KEY": "test-key"}
+    secrets = FakeSecrets({"QOGITA_API_KEY": "test-key"})
     st_mock = SimpleNamespace(secrets=secrets, warning=Mock())
     monkeypatch.setattr(qogita_api, "st", st_mock)
     monkeypatch.delenv("QOGITA_API_KEY", raising=False)
@@ -30,7 +38,7 @@ def test_get_qogita_products_returns_data(monkeypatch):
 
 
 def test_get_qogita_products_missing_key_returns_empty_list(monkeypatch):
-    st_mock = SimpleNamespace(secrets={}, warning=Mock())
+    st_mock = SimpleNamespace(secrets=FakeSecrets({}), warning=Mock())
     monkeypatch.setattr(qogita_api, "st", st_mock)
     monkeypatch.delenv("QOGITA_API_KEY", raising=False)
     request_get = Mock()
