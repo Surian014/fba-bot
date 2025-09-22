@@ -19,15 +19,25 @@ for p in products:
 df = pd.DataFrame(rows)
 st.dataframe(df, use_container_width=True)
 
-profitable = df[df["Profitable"]]
-st.subheader("✅ Automatisch profitable Produkte listen")
-for _, row in profitable.iterrows():
-    resp = auto_list(row.to_dict())
-    st.write(row["Name"], resp)
+profitable = pd.DataFrame(columns=df.columns)
 
-st.download_button(
-    "📥 Export CSV",
-    data=profitable.to_csv(index=False).encode("utf-8"),
-    file_name="profitable_products.csv",
-    mime="text/csv"
-)
+if df.empty:
+    st.info("Keine Produkte gefunden. Bitte passe die Filter an und versuche es erneut.")
+elif "Profitable" not in df.columns:
+    st.info(
+        "Die Ergebnisdaten enthalten keine Spalte 'Profitable'. "
+        "Automatisches Listing und Download werden übersprungen."
+    )
+else:
+    profitable = df[df["Profitable"]]
+    st.subheader("✅ Automatisch profitable Produkte listen")
+    for _, row in profitable.iterrows():
+        resp = auto_list(row.to_dict())
+        st.write(row["Name"], resp)
+
+    st.download_button(
+        "📥 Export CSV",
+        data=profitable.to_csv(index=False).encode("utf-8"),
+        file_name="profitable_products.csv",
+        mime="text/csv"
+    )
