@@ -128,10 +128,10 @@ def get_qogita_products(limit=50):
         "Accept": "application/json",
     }
     url = "https://api.qogita.com/api/v1/buyer/variants/offers/search/"
-    params = {"page_size": limit}
+    payload = {"page_size": limit}
 
     try:
-        response = requests.get(url, headers=headers, params=params, timeout=30)
+        response = requests.post(url, headers=headers, json=payload, timeout=30)
         response.raise_for_status()
     except requests.RequestException:
         return []

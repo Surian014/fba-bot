@@ -44,8 +44,8 @@ def test_get_qogita_products_returns_data(monkeypatch):
         ]
     }
     fake_response.raise_for_status = Mock()
-    request_get = Mock(return_value=fake_response)
-    monkeypatch.setattr(qogita_api.requests, "get", request_get)
+    request_post = Mock(return_value=fake_response)
+    monkeypatch.setattr(qogita_api.requests, "post", request_post)
 
     result = qogita_api.get_qogita_products(limit=1)
 
@@ -61,23 +61,23 @@ def test_get_qogita_products_returns_data(monkeypatch):
         }
     ]
 
-    request_get.assert_called_once()
-    args, kwargs = request_get.call_args
+    request_post.assert_called_once()
+    args, kwargs = request_post.call_args
     assert args[0] == "https://api.qogita.com/api/v1/buyer/variants/offers/search/"
     assert kwargs["headers"]["Authorization"] == "Bearer test-key"
     assert kwargs["headers"]["Accept"] == "application/json"
-    assert kwargs["params"] == {"page_size": 1}
+    assert kwargs.get("json", {}) == {"page_size": 1}
 
 
 def test_get_qogita_products_missing_key_returns_empty_list(monkeypatch):
     st_mock = SimpleNamespace(secrets=FakeSecrets({}), warning=Mock())
     monkeypatch.setattr(qogita_api, "st", st_mock)
     monkeypatch.delenv("QOGITA_API_KEY", raising=False)
-    request_get = Mock()
-    monkeypatch.setattr(qogita_api.requests, "get", request_get)
+    request_post = Mock()
+    monkeypatch.setattr(qogita_api.requests, "post", request_post)
 
     result = qogita_api.get_qogita_products()
 
     assert result == []
     st_mock.warning.assert_called_once()
-    request_get.assert_not_called()
+    request_post.assert_not_called()
