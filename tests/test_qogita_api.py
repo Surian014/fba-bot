@@ -29,16 +29,15 @@ def test_get_qogita_products_returns_data(monkeypatch):
     assert headers["Authorization"] == "Bearer test-key"
 
 
-def test_get_qogita_products_missing_key_raises(monkeypatch):
+def test_get_qogita_products_missing_key_returns_empty_list(monkeypatch):
     st_mock = SimpleNamespace(secrets={}, warning=Mock())
     monkeypatch.setattr(qogita_api, "st", st_mock)
     monkeypatch.delenv("QOGITA_API_KEY", raising=False)
     request_get = Mock()
     monkeypatch.setattr(qogita_api.requests, "get", request_get)
 
-    with pytest.raises(RuntimeError) as excinfo:
-        qogita_api.get_qogita_products()
+    result = qogita_api.get_qogita_products()
 
-    assert "QOGITA_API_KEY" in str(excinfo.value)
+    assert result == []
     st_mock.warning.assert_called_once()
     request_get.assert_not_called()
