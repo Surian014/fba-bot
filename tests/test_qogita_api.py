@@ -25,16 +25,48 @@ def test_get_qogita_products_returns_data(monkeypatch):
     monkeypatch.delenv("QOGITA_API_KEY", raising=False)
 
     fake_response = Mock()
-    fake_response.json.return_value = {"data": [1, 2, 3]}
+    fake_response.json.return_value = {
+        "results": [
+            {
+                "variant": {
+                    "ean": "1234567890123",
+                    "name": "Sample Product",
+                    "sku": "SKU-1",
+                    "brand": "Brand A",
+                },
+                "price": {"amount": "10.00", "currency": "EUR"},
+                "stock": 5,
+            },
+            {
+                "variant": {"ean": "9876543210987", "name": "Extra Product"},
+                "price": {"amount": "20.00", "currency": "EUR"},
+            },
+        ]
+    }
+    fake_response.raise_for_status = Mock()
     request_get = Mock(return_value=fake_response)
     monkeypatch.setattr(qogita_api.requests, "get", request_get)
 
-    result = qogita_api.get_qogita_products(limit=2)
+    result = qogita_api.get_qogita_products(limit=1)
 
-    assert result == [1, 2]
+    assert result == [
+        {
+            "ean": "1234567890123",
+            "name": "Sample Product",
+            "price": "10.00",
+            "sku": "SKU-1",
+            "brand": "Brand A",
+            "stock": 5,
+            "currency": "EUR",
+        }
+    ]
+
     request_get.assert_called_once()
-    headers = request_get.call_args.kwargs["headers"]
-    assert headers["Authorization"] == "Bearer test-key"
+    args, kwargs = request_get.call_args
+    assert args[0] == "https://api.qogita.com/api/v1/buyer/variants/offers/search/"
+    assert kwargs["headers"]["Authorization"] == "Bearer test-key"
+    assert kwargs["headers"]["Accept"] == "application/json"
+    assert kwargs["params"] == {"page_size": 1}
 
 
 def test_get_qogita_products_missing_key_returns_empty_list(monkeypatch):
